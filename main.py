@@ -69,7 +69,7 @@ class Game:
 
             # Check for key releases
                 elif event.type == pygame.KEYUP:
-                    if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                    if event.key == pygame.K_a or event.key == pygame.K_d:
                         movement = 0
                         #self.movementy = 0
 
