@@ -56,7 +56,7 @@ class Game:
         self.img = pygame.transform.scale(img,(300,300))
         self.img_pos = [16,16]
         self.movement = [False, False]'''
-################################################################
+    ##############################################################
 
     def run(self):
         #Game loop
