@@ -1,14 +1,17 @@
 import pygame
 
 
+class Spritesheets:
+    def __init__(self, path):
+        self.path = path 
+        self.sprite_sheet = pygame.image.load(path).convert()
+        #img.set_colorkey((0,0,0))
+        
 
-def load_image(path):
-    img = pygame.image.load(path).convert()
-    #img.set_colorkey((0,0,0))
-    
-    return img
+    def get_sprite(self,size,x, y, width, height):
+        sprite = pygame.Surface((width, height))
+        sprite.set_colorkey((0,0,0))
+        sprite.blit(self.sprite_sheet,(0,0),(x,y,width,height))
+        sprite = pygame.transform.scale(sprite, size)
 
-def get_sprite(image, x, y, width, height):
-    sprite = image.subsurface(pygame.Rect(x, y, width, height))
-    
-    return sprite
+        return sprite

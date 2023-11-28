@@ -2,7 +2,7 @@ import pygame
 
 
 class PhysicsEntity:
-    def __init__(self, game, e_type, pos, size):
+    def __init__(self, game, e_type, pos):
         self.game = game
         self.type = e_type
         self.pos = list(pos)
@@ -14,5 +14,5 @@ class PhysicsEntity:
 
 
     def render(self, surf):
-        surf.blit(self.game.assets['player'], self.pos)
+        surf.blit(self.game.assets['entity'], self.pos)
 
