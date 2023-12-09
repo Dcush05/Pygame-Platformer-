@@ -1,5 +1,10 @@
-import pygame, csv, os
-from util import Spritesheets
+import csv
+import os
+import pygame
+from spritesheet import Spritesheets
+
+
+
 
 class Tile(pygame.sprite.Sprite):
     def __init__(self, image, x, y, spritesheet):
@@ -11,72 +16,109 @@ class Tile(pygame.sprite.Sprite):
 
     def draw(self, surface):
         surface.blit(self.image, (self.rect.x, self.rect.y))
+        
 
-class TileMap():
+class Coins(pygame.sprite.Sprite):
+    def __init__(self,filename,x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.Coinimage = Spritesheets(filename).get_sprite(0,0,16,16)
+        self.rect = self.Coinimage.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        #self.coins_group = pygame.sprite.Group()
+    def draw(self, surface):
+        surface.blit(self.Coinimage, (self.rect.x, self.rect.y))
+
+
+class TileMap(pygame.sprite.Sprite):
     def __init__(self, filename, spritesheet):
         self.tile_size = 16   #size of each tile aesprite 128x128 means tiles are 16x16
         self.spawn_x = 0
         self.spawn_y = -10
         self.spritesheet = spritesheet
         self.tiles = self.load_tiles(filename)
+        #self.coins_group = pygame.sprite.Group()
+        self.coins = self.load_coins(filename)
+        #self.coins_group = pygame.sprite.Group()
+        #self.coins_group.add(self.coins)
+        
         self.map_surface = pygame.Surface((self.map_w, self.map_h))
         self.map_surface.set_colorkey((0, 0, 0))
         self.load_map()
+
+
 #Renders map
-    def draw_map(self, surface):
-        surface.blit(self.map_surface, (0, 0))
+    def draw_map(self, surface,offset=(0,0)):
+        surface.blit(self.map_surface, (0-offset[0], 0-offset[1]))
 
     def load_map(self):
+        """renders the entire map"""
         for tile in self.tiles:
             tile.draw(self.map_surface)
+        for coin in self.coins:
+            coin.draw(self.map_surface)
+ 
 
     def read_csv(self, filename):
+        """Reads the .csv file and returns the map thats given in the .csv"""
         map = []
         with open(os.path.join(filename)) as data:
             data = csv.reader(data, delimiter=',')
             for row in data:
                 map.append(list(row))
         return map
-#Loads a tile from a picture and uses the csv to place the coordinate of where that tile is supposed to go
-    def load_tiles(self, filename):
-        tiles = []
-        map = self.read_csv(filename)
-        x, y = 0, 0
-        for row in map:
-            x = 0
-            for tile in row:
-                if tile == '-1': #−1,0,1,2,3,8,9,11,16,17,18,19 numbers for the assigned tiles in the csv file, the png is coming from parsing the data from the groundSet.json file this made my brain hurt
-                 self.start_x, self.start_y = x * self.tile_size, y * self.tile_size
-                elif tile == '0':
-                    tiles.append(Tile('GroundSet-0.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
-                elif tile == '1':
-                    tiles.append(Tile('GroundSet-1.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
-                elif tile == '2':
-                    tiles.append(Tile('GroundSet-2.png', x*self.tile_size, y * self.tile_size, self.spritesheet))
-                elif tile == '3':
-                    tiles.append(Tile('GroundSet-3.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
-                elif tile == '8':
-                    tiles.append(Tile('GroundSet-4.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
-                elif tile == '9':
-                    tiles.append(Tile('GroundSet-5.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
-                elif tile == '10':
-                    tiles.append(Tile('GroundSet-6.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
-                elif tile == '11':
-                    tiles.append(Tile('GroundSet-7.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
-                elif tile == '16':
-                    tiles.append(Tile('GroundSet-8.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
-                elif tile == '17':
-                    tiles.append(Tile('GroundSet-9.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
-                elif tile == '18':
-                    tiles.append(Tile('GroundSet-10.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
-                elif tile == '19':
-                    tiles.append(Tile('GroundSet-11.png', x * self.tile_size, y * self.tile_size, self.spritesheet))
-                
-                    # Move to next tile in current row
-                x += 1
+    
 
-            # Move to next row
-            y += 1
+    def load_tiles(self, filename):
+
+        """renders tile and assign sprites to each tile"""
+        tiles = []
+        tile_mapping = {
+        '-1': None,  # No image for -1
+        '0': 'GroundSet-0.png',
+        '1': 'GroundSet-1.png',
+        '2': 'GroundSet-2.png',
+        '3': 'GroundSet-3.png',
+        '8': 'GroundSet-4.png',
+        '9': 'GroundSet-5.png',
+        '10': 'GroundSet-6.png',
+        '11': 'GroundSet-7.png',
+        '16': 'GroundSet-8.png',
+        '17': 'GroundSet-9.png',
+        '18': 'GroundSet-10.png',
+        '19': 'GroundSet-11.png',
+                        }
+
+        #coins = []
+        map_data = self.read_csv(filename)     
+        for y, row in enumerate(map_data):
+                for x, tile in enumerate(row):
+                    if tile == '-1':
+                        self.start_x, self.start_y = x * self.tile_size, y * self.tile_size
+                    elif tile in tile_mapping:
+                        image_fileName = tile_mapping[tile]
+                        if image_fileName:
+                            tiles.append(Tile(image_fileName, x*self.tile_size, y*self.tile_size, self.spritesheet)) 
+            
             # Store the size of the tile map
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
         return tiles
+    
+    def load_coins(self, filename):
+        """assigns the coin sprite to a tile"""
+        coins = [] 
+       # self.coins_group = pygame.sprite.Group()
+        map = self.read_csv(filename)
+        x, y = 0 , 0
+        for row in map:
+            x = 0
+            for coin in row:
+                if coin == '20':
+                    coins.append(Coins('assets\coin.png', x * self.tile_size, y * self.tile_size))
+                x += 1
+            y += 1
+        self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
+        return coins
+    
+
+    
