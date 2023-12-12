@@ -13,8 +13,7 @@ from SoundManager import SoundManager
 #TODO: 1. Movement(implement coyote time, dash, wall jummp :p)* 2. more sprites 3. Game map(atleast 2 levels) 4. Damage system 5.Award system 6.Score systm based on the time finished on a level and awards 7. animation 8. gammestates
 #Coyote time is working but we just need to adjust it to what makes it feel better maybe asks someone to test it  
 #MAKE SPRITESHEETS 128X128 PLEASE :p
-#NEW - BETTER MAP AND MAP RENDERER, BETTER MOVEMENT(COYOTE TIME), SOUND MANAGER CLASS, ABLE TO PARSE SPRITES FROM A .JSON FILE(not for player yet idk), created a dat folder for the future
-#Some variables are going to be used in the future, for the next commits i will try to remove some code that are old and dont make sense. For now I will keep them so you guys understand the vision.
+#NEW - Changed the first map scraped the coin ide
 #NOTE: AS OF RIGHT NOW PLEASE DO NOT TOUCH .TSJ , .TMX, .JSON, .CSV FILES AS IT WILL ALTER THE WAY THE MAP LOOKS OR THE DATA FOR THE SPRITES WHICH WILL RESULT ALTER THE WAY THE SPRITES LOOK
 
 #fix coin collision (deleting sprite after collision)
@@ -53,30 +52,22 @@ class Game:
         spritesheets_path = "assets/Maps/GroundSet.png"
         spritesheets = Spritesheets(spritesheets_path)
         spritesheets.toJSON()   #CHANGES GroundSet.png to .json to go into the .json file to look for sprite data
-        self.map = TileMap('assets/Maps/MapOne-coin.csv', spritesheets)
+        self.map = TileMap('assets/Maps/MapOne.csv', spritesheets)
         #player_sprite_sheet = Spritesheets("assets/player.png")
-       # self.cloud_path = "cloud_1.png"
+       #self.cloud_path = "cloud_1.png"
        # self.cloud = Spritesheets(self.cloud_path).get_sprite(0,0,16,16)
-        self.background = pygame.image.load("assets/background-1.png").convert() #.convert() is used to convert pixel format to the one im using for the display of the game. 
-        #without it you would have to make pixel conversions everytime you blit a surfae onto the display which would be slower. TLDR; MAKES THE IMAGE FASTER TO LOAD
-        self.coin_sprite = pygame.sprite.Group()
-        self.coin_sprite.add(*self.map.coins)
+        self.background = pygame.image.load("assets/background-1.png").convert() 
+        '''.convert() is used to convert pixel format to the one im using for the display of the game. 
+        without it you would have to make pixel conversions everytime you blit a surfae onto the display which would be slower. TLDR; MAKES THE IMAGE FASTER TO LOAD'''
+        #coins
+
         
         #Player
         self.player = Player()
         self.player.position.x, self.player.position.y = self.map.spawn_x, self.map.spawn_y #sets position of the player
         self.scroll = [0,0]
 
-#OLD CODE BUT COULD BE USED IN THE FUTURE
-        """self.assets = {
-           "entity":  spritesheets.get_sprite(0,0,16,16)  
-        }
-       
-
-        img = pygame.image.load("assets/player.png")
-        self.img = pygame.transform.scale(img,(300,300))
-        self.img_pos = [16,16]
-        self.movement = [False, False]"""
+        
 
 
     def run(self):
@@ -95,6 +86,7 @@ class Game:
             self.scroll[0] += (self.player.rect.centerx - self.window.get_width() / 2 - self.scroll[0]) / 30 
             self.scroll[1] += (self.player.rect.centery - self.window.get_height()/2 - self.scroll[1]) / 30 
             render_scroll = (float(self.scroll[0]), float(self.scroll[1]))
+
      
            #CHECK PLAYER INPUTS
             for event in pygame.event.get():  
@@ -123,17 +115,20 @@ class Game:
                         if self.player.isJumping:
                             self.sound.play_sound('jump')  
                             self.player.velocity.y *= .25
-                            self.player.coyoteTime = self.player.maxCoyote_Time #Gives player more time to jump off the edge of a platformer instead of being exact
                             self.player.isJumping = False
+                        self.player.coyote_Time(dt)
                             
-                self.player.coyote_Time(dt)
+                
+        
 
 
             #######UPDATING WINDOW##### (ORDER MATTERS)
-            self.coin_sprite.update(self.map.coins)
-            self.player.update(dt, self.map.tiles, self.map.coins)
-            print(self.player.points) #testing coin collision
-            print(self.coin_sprite)
+
+
+
+            self.player.update(dt, self.map.tiles, self.map.spikes, self.map.flags)
+           #print(self.player.points) #testing coin collision
+            #print(self.coin_sprite)
             if self.player.isAlive == False: #checking player status in he future add game states 
                     Game.gameOver(self)
             self.window.fill((240, 255, 255))
@@ -146,11 +141,14 @@ class Game:
             #print(self.clock, '\n')
             #print("Hardware surface support:", self.info)
             pygame.display.update()
+            #print(self.player.isAlive)
 
     def gameOver(self):
         print("Game over")
         pygame.quit()
+       # print(self.gameTime)
         sys.exit()
+        
             
 
 Game().run()

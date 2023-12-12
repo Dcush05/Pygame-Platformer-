@@ -6,9 +6,8 @@ from map import TileMap
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = Spritesheets("assets/player.png").get_sprite(0,0,16,16) #gets specific sprite coordinates in a spritesheet to find the sprite
+        self.image = Spritesheets("assets/player.png").get_sprite(0,0,16,16) 
         self.image = pygame.transform.scale(self.image, (25,25))
-
         self.rect = self.image.get_rect() 
         self.boundingBox = self.rect
         #self.outLine = self.rect.inflate(6,6)
@@ -22,7 +21,7 @@ class Player(pygame.sprite.Sprite):
         self.onGround = False
         self.isAlive = True
         self.points = 0
-        self.maxCoyote_Time = .7
+        self.maxCoyote_Time = .9
         self.coyoteTime = 0
         self.gravity = .35
         self.friction = -.12
@@ -36,11 +35,14 @@ class Player(pygame.sprite.Sprite):
         display.blit(self.image, (self.rect.x-offset[0], self.rect.y-offset[1]))
         
 
-    def update(self, dt, tiles, coins):
+    def update(self, dt, tiles, spike, flag):
+        '''updates player'''
         self.horizontal_movement(dt)
-        self.checkCollisions_X(tiles, coins)
+        self.checkCollisions_X(tiles, flag)
         self.vertical_movement(dt)
-        self.checkCollisions_Y(tiles, coins)
+        self.checkCollisions_Y(tiles, flag)
+        self.spikeCollision(spike)
+        #self.flagCollision(flag)
          
 
 #PLAYER MOVEMENT CALCULATIONS - Mario like movement
@@ -56,7 +58,7 @@ class Player(pygame.sprite.Sprite):
         self.position.x += self.velocity.x * dt + (self.acceleration.x * .5) * (dt * dt)
         self.rect.x = self.position.x
     def coyote_Time(self, dt):
-        self.coyoteTime = max(0, self.coyoteTime - dt)
+        self.coyoteTime = max(0, self.maxCoyote_Time- dt)
 
     def vertical_movement(self, dt):
         self.velocity.y += self.acceleration.y * dt
@@ -65,11 +67,10 @@ class Player(pygame.sprite.Sprite):
             self.coyoteTime = self.maxCoyote_Time
         
         self.position.y += self.velocity.y * dt + (self.acceleration.y * .5) * (dt * dt)
-        if self.position.y > 1080: #DETERMINES HOW FAR IT DROPS 
+        if self.position.y > 1080: 
             self.onGround = True
             self.velocity.y = 0
-            self.position.y = 1080 #MUST BE THE SAME SO IT DOESNT SEEM LIKE THE PLAYER IS TELEPORTING
-            self.isAlive = False
+            self.position.y = 1080 
         self.rect.bottom = self.position.y
 
     def limit_velocity(self, max_vel):
@@ -90,17 +91,29 @@ class Player(pygame.sprite.Sprite):
                 hits.append(tile)
         return hits
 
-    def coinHit(self, coins):
+    def spikeCollision(self, spikes):
         hits = []
-        for coin in coins:
-            if self.boundingBox.colliderect(coin):
-                hits.append(coin)
+        for spike in spikes:
+            if self.boundingBox.colliderect(spike):
+                hits.append(spike)
+                print("hit spike")
+                self.isAlive =  False
         return hits
+    def flagCollision(self, flags):
+        hits = []
+        for flag in flags:
+            if self.boundingBox.colliderect(flag):
+                hits.append(flag)
+                self.IsAlive = False
+        return hits
+    
+    
 
 
-    def checkCollisions_X(self, tiles, coins):
+
+    def checkCollisions_X(self, tiles, flags):
         collisions = self.getHits(tiles)
-        coinCollision = self.coinHit(coins)
+        flagCollision = self.flagCollision(flags)
         for tile in collisions:
             if self.velocity.x > 0: #Collision to the right
                 self.position.x = tile.rect.left - self.rect.w
@@ -109,16 +122,17 @@ class Player(pygame.sprite.Sprite):
             elif self.velocity.x < 0: #Collision to the left
                 self.position.x = tile.rect.right
                 self.rect.x = self.position.x
-        for coin in coinCollision:
-            self.points += 1
-            coin.kill()
-            coins.remove(coin)
-                        
+        for flag in flagCollision:
+            self.isAlive = False
+      
             
-    def checkCollisions_Y(self, tiles, coins):
+
+            
+    def checkCollisions_Y(self, tiles, flags):
         self.onGround = False
         self.rect.bottom += 1
         collisions = self.getHits(tiles)
+        flagCollision = self.flagCollision(flags)
         for tile in collisions:
             if self.velocity.y > 0: #Collision to the top
                 self.onGround = True
@@ -131,6 +145,9 @@ class Player(pygame.sprite.Sprite):
                 self.velocity.y = 0
                 self.position.y = tile.rect.bottom + self.rect.height
                 self.rect.bottom = self.position.y
+        
+        for flag in flagCollision:
+            self.isAlive = False
             
                 
 

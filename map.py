@@ -2,6 +2,7 @@ import csv
 import os
 import pygame
 from spritesheet import Spritesheets
+from coin import Coins
 
 
 
@@ -18,47 +19,73 @@ class Tile(pygame.sprite.Sprite):
         surface.blit(self.image, (self.rect.x, self.rect.y))
         
 
-class Coins(pygame.sprite.Sprite):
-    def __init__(self,filename,x, y):
+class Spikes(pygame.sprite.Sprite):
+    def __init__(self, filename,x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.Coinimage = Spritesheets(filename).get_sprite(0,0,16,16)
-        self.rect = self.Coinimage.get_rect()
+        self.image = Spritesheets(filename).get_sprite(0,0,18,18)
+        self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        #self.coins_group = pygame.sprite.Group()
-    def draw(self, surface):
-        surface.blit(self.Coinimage, (self.rect.x, self.rect.y))
 
+        
+    def draw(self, surface):
+        surface.blit(self.image, (self.rect.x, self.rect.y))
+
+class Flag(pygame.sprite.Sprite):
+    def __init__(self, filename,x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = Spritesheets(filename).get_sprite(0,0,18,16)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+        
+    def draw(self, surface):
+        surface.blit(self.image, (self.rect.x, self.rect.y))
+       
 
 class TileMap(pygame.sprite.Sprite):
-    def __init__(self, filename, spritesheet):
+    def __init__(self, filename, spritesheet): #(,object)
         self.tile_size = 16   #size of each tile aesprite 128x128 means tiles are 16x16
+        self.spike_size = 15
         self.spawn_x = 0
         self.spawn_y = -10
+        self.objectSpawnX = 100
+        self.objectSpawnY = 300
         self.spritesheet = spritesheet
         self.tiles = self.load_tiles(filename)
-        #self.coins_group = pygame.sprite.Group()
-        self.coins = self.load_coins(filename)
-        #self.coins_group = pygame.sprite.Group()
-        #self.coins_group.add(self.coins)
+        self.spikes = self.load_spikes(filename)
+        self.flags = self.load_flag(filename)
+
+        self.coin = Coins(self.objectSpawnX, self.objectSpawnY)
+        self.coinSprite = pygame.sprite.Group()
+        self.coinSprite.add(self.coin)
         
         self.map_surface = pygame.Surface((self.map_w, self.map_h))
         self.map_surface.set_colorkey((0, 0, 0))
         self.load_map()
+        self.coins_to_remove = []
 
 
-#Renders map
     def draw_map(self, surface,offset=(0,0)):
+        """renders map"""
         surface.blit(self.map_surface, (0-offset[0], 0-offset[1]))
+       # self.coinSprite.draw(self.map_surface,(self.objectSpawnX-offset[0], self.objectSpawnY-offset[1]))
+    
+           
 
     def load_map(self):
         """renders the entire map"""
         for tile in self.tiles:
             tile.draw(self.map_surface)
-        for coin in self.coins:
-            coin.draw(self.map_surface)
- 
+        for spike in self.spikes:
+            spike.draw(self.map_surface)
+        for flag in self.flags:
+            flag.draw(self.map_surface)
 
+        
+           
+    
     def read_csv(self, filename):
         """Reads the .csv file and returns the map thats given in the .csv"""
         map = []
@@ -104,21 +131,39 @@ class TileMap(pygame.sprite.Sprite):
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
         return tiles
     
-    def load_coins(self, filename):
-        """assigns the coin sprite to a tile"""
-        coins = [] 
+
+    def load_spikes(self, filename):
+        """assigns the spike sprite to a tile"""
+        spikes = [] 
        # self.coins_group = pygame.sprite.Group()
         map = self.read_csv(filename)
         x, y = 0 , 0
         for row in map:
             x = 0
-            for coin in row:
-                if coin == '20':
-                    coins.append(Coins('assets\coin.png', x * self.tile_size, y * self.tile_size))
+            for spike in row:
+                if spike == '21':
+                    spikes.append(Spikes('assets\spikes.png', x * self.tile_size, y * self.tile_size))
                 x += 1
             y += 1
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
-        return coins
+        return spikes
+    
+
+    def load_flag(self, filename):
+        """assigns the flag sprite to a tile"""
+        flags = [] 
+       # self.coins_group = pygame.sprite.Group()
+        map = self.read_csv(filename)
+        x, y = 0 , 0
+        for row in map:
+            x = 0
+            for flag in row:
+                if flag == '22':
+                    flags.append(Flag('assets/flag.png', x * self.tile_size, y * self.tile_size))
+                x += 1
+            y += 1
+        self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
+        return flags
     
 
     
