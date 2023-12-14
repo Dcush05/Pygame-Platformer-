@@ -31,13 +31,16 @@ class Game:
         pygame.display.set_caption("Project")
         self.font = pygame.font.Font("assets/fonts/PixelFont.ttf") #sets up font to print text on the window
         self.info = pygame.display.Info()
-        
+        self.menu_start_time = 0
+        self.menu_start_time
+        self.is_menu_open = False
         
 
         #Game Variables (COMMENTED VARIABLES WERE USED IN EARLIER VERSIONS)
         self.clock = pygame.time.Clock()
         self.running = True
         self.start_time=time.time() #gives time
+        
  
         #self.posx = 8 
         #self.posy = 8
@@ -73,30 +76,51 @@ class Game:
     
 
 
-    
-
+    def openMenu(self):
+        self.menu_start_time = time.time()
+        self.is_menu_open = True
+        #self.sound.pause_sound("background")
         
 
+    def closeMenu(self):
+         self.start_time += (time.time() - self.menu_start_time)
+         self.is_menu_open = False
+         
+
+    def drawMenu(self):
+        pygame.draw.rect(self.window, (116, 102, 59), self.menu)
+        pause_text = self.font.render("PAUSE", True, (255, 255, 255))
+        unpause_text = self.font.render("PRESS ANY KEY TO RESUME", True, (255, 255, 255))
+        quit_text = self.font.render("PRESS ESCAPE TO QUIT", True, (255, 255, 255))
+        self.window.blit(pause_text, (0, self.height/2))
+        self.window.blit(unpause_text, (0, self.height/2 + 20))
+        self.window.blit(quit_text, (0, self.height/2 + 30))
+        
+    
 
     def run(self):
         #Game loop
         
 
         while self.running:
-
+            #self.sound.play_sound("background")
             framerate = self.clock.tick(self.targetFPS) #sets the Framerate
             self.dt = framerate * .001 * self.targetFPS #gets deltatime that makes the games speed consistent across different devices
             self.gameTime = time.time()-self.start_time
             seconds = int(self.gameTime)
             miliseconds = int((self.gameTime-seconds)*1000)
             self.GameTimeSTR = str(self.gameTime)
-            self.textSurface = self.font.render(f'Time:{seconds}.{miliseconds:02d}s', True, (0,0,0)) #sets up rendering how long the player is playing the game
+            
+            if not self.is_menu_open:
+                self.textSurface = self.font.render(f'Time:{seconds}.{miliseconds:02d}s', True, (0,0,0)) #sets up rendering how long the player is playing the game
             self.textSurface.set_alpha(255) #Makes it transparent
             self.fpsText = self.font.render(f'{self.clock}', True, (0,0,0))
-
+            self.controlsText = self.font.render("Jump - Space    Left/Right - A/D", True, (255, 255, 153))
             self.scroll[0] += (self.player.rect.centerx - self.window.get_width() / 2 - self.scroll[0]) / 30 
             self.scroll[1] += (self.player.rect.centery - self.window.get_height()/2 - self.scroll[1]) / 30 
             render_scroll = (float(self.scroll[0]), float(self.scroll[1]))
+
+            self.menu = pygame.Rect(0, self.height/2 , 200, 50)
 
      
            #CHECK PLAYER INPUTS
@@ -107,6 +131,8 @@ class Game:
                     sys.exit()
                 ########################### INPUTS #########################
                 if event.type == pygame.KEYDOWN:
+                    if self.is_menu_open and (event.key != pygame.K_ESCAPE):
+                        self.closeMenu()
                     if event.key == pygame.K_a:
                         self.player.K_a = True 
                     elif event.key == pygame.K_d:
@@ -115,8 +141,12 @@ class Game:
                     elif event.key == pygame.K_SPACE:
                         self.player.jump()
                     elif event.key == pygame.K_ESCAPE:
-                        pygame.quit()
-                        sys.exit()
+                            if self.is_menu_open:
+                                 pygame.quit()
+                                 sys.exit()
+                            else:
+                                 self.openMenu()
+                            
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_a:
                         self.player.K_a = False   
@@ -153,7 +183,11 @@ class Game:
             self.player.draw(self.window,self.scroll)
             self.window.blit(self.textSurface, (self.window.get_width()/2,10))
             self.window.blit(self.fpsText, (0,0))
+            self.window.blit(self.controlsText, (0, self.height - 50))
+            if self.is_menu_open:
+                self.drawMenu()
             self.map.draw_map(self.window,offset=render_scroll)
+            
             #print(self.clock, '\n')
             #print("Hardware surface support:", self.info)
             pygame.display.update()
