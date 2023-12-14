@@ -60,9 +60,8 @@ class Game:
         self.MapOne = 'assets/Maps/Map1.csv'
         self.map = TileMap(self.MapOne, self.spritesheets)
         #player_sprite_sheet = Spritesheets("assets/player.png")
-       #self.cloud_path = "cloud_1.png"
        # self.cloud = Spritesheets(self.cloud_path).get_sprite(0,0,16,16)
-        self.background = pygame.image.load("assets/backgrounds/background-1.png").convert() 
+        #self.background = pygame.image.load("assets/backgrounds/background-1.png").convert() 
         '''.convert() is used to convert pixel format to the one im using for the display of the game. 
         without it you would have to make pixel conversions everytime you blit a surfae onto the display which would be slower. TLDR; MAKES THE IMAGE FASTER TO LOAD'''
         #coins
@@ -74,13 +73,10 @@ class Game:
         self.scroll = [0,0]
 
 
-    
-
 
     def openMenu(self):
         self.menu_start_time = time.time()
         self.is_menu_open = True
-        #self.sound.pause_sound("background")
         
 
     def closeMenu(self):
@@ -168,8 +164,6 @@ class Game:
 
 
             self.player.update(self.dt, self.map.tiles, self.map.spikes, self.map.flags)
-           #print(self.player.points) #testing coin collision
-            #print(self.coin_sprite)
             if self.player.isAlive == False: #checking player status in he future add game states 
                     Game.gameOver(self)
             if self.player.reset == True:
@@ -178,7 +172,7 @@ class Game:
                     map_filename = 'assets/maps/map2.csv'
                     Game.loadnewLevel(self, map_filename)
             self.window.fill((240, 255, 255))
-            self.window.blit(self.background,(0,0))
+           # self.window.blit(self.background,(0,0))
             #self.window.blit(self.background, (0, 0), (render_scroll[0], render_scroll[1], self.width, self.height))            
             self.player.draw(self.window,self.scroll)
             self.window.blit(self.textSurface, (self.window.get_width()/2,10))
