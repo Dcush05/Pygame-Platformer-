@@ -2,7 +2,6 @@ import csv
 import os
 import pygame
 from spritesheet import Spritesheets
-from coin import Coins
 
 
 
@@ -47,20 +46,12 @@ class Flag(pygame.sprite.Sprite):
 class TileMap(pygame.sprite.Sprite):
     def __init__(self, filename, spritesheet): #(,object)
         self.tile_size = 16   #size of each tile aesprite 128x128 means tiles are 16x16
-        self.spike_size = 15
         self.spawn_x = 0
         self.spawn_y = -10
-        self.objectSpawnX = 100
-        self.objectSpawnY = 300
         self.spritesheet = spritesheet
         self.tiles = self.load_tiles(filename)
         self.spikes = self.load_spikes(filename)
         self.flags = self.load_flag(filename)
-
-        self.coin = Coins(self.objectSpawnX, self.objectSpawnY)
-        self.coinSprite = pygame.sprite.Group()
-        self.coinSprite.add(self.coin)
-        
         self.map_surface = pygame.Surface((self.map_w, self.map_h))
         self.map_surface.set_colorkey((0, 0, 0))
         self.load_map()
@@ -70,10 +61,8 @@ class TileMap(pygame.sprite.Sprite):
     def draw_map(self, surface,offset=(0,0)):
         """renders map"""
         surface.blit(self.map_surface, (0-offset[0], 0-offset[1]))
-       # self.coinSprite.draw(self.map_surface,(self.objectSpawnX-offset[0], self.objectSpawnY-offset[1]))
     
            
-
     def load_map(self):
         """renders the entire map"""
         for tile in self.tiles:
@@ -84,7 +73,6 @@ class TileMap(pygame.sprite.Sprite):
             flag.draw(self.map_surface)
 
         
-           
     
     def read_csv(self, filename):
         """Reads the .csv file and returns the map thats given in the .csv"""
@@ -142,7 +130,7 @@ class TileMap(pygame.sprite.Sprite):
             x = 0
             for spike in row:
                 if spike == '21':
-                    spikes.append(Spikes('assets\spikes.png', x * self.tile_size, y * self.tile_size))
+                    spikes.append(Spikes('assets/objects/spikes.png', x * self.tile_size, y * self.tile_size))
                 x += 1
             y += 1
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
@@ -159,7 +147,7 @@ class TileMap(pygame.sprite.Sprite):
             x = 0
             for flag in row:
                 if flag == '22':
-                    flags.append(Flag('assets/flag.png', x * self.tile_size, y * self.tile_size))
+                    flags.append(Flag('assets/objects/flag.png', x * self.tile_size, y * self.tile_size))
                 x += 1
             y += 1
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size

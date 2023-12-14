@@ -1,6 +1,7 @@
 import pygame
 from spritesheet import Spritesheets
 from map import TileMap
+from SoundManager import SoundManager
 
 
 class Player(pygame.sprite.Sprite):
@@ -8,19 +9,24 @@ class Player(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = Spritesheets("assets/player.png").get_sprite(0,0,16,16) 
         self.image = pygame.transform.scale(self.image, (25,25))
-        self.rect = self.image.get_rect() 
+        self.rect = self.image.get_rect()
         self.boundingBox = self.rect
+        self.sound = SoundManager()
+       
         #self.outLine = self.rect.inflate(6,6)
         self.green = (100, 255, 0, 120)
         self.K_a = False
         self.K_d = False
         self.K_Space = False
         self.facingLeft = False
-        self.spritefacingLeft = pygame.transform.flip(self.image, False, True)
+        #self.spritefacingLeft = pygame.transform.flip(self.image, False, True)
         self.isJumping = False
         self.onGround = False
         self.isAlive = True
+        self.reset = False
+        self.is_flag_touched = False
         self.points = 0
+        self.Lives = 3
         self.maxCoyote_Time = .9
         self.coyoteTime = 0
         self.gravity = .35
@@ -30,7 +36,7 @@ class Player(pygame.sprite.Sprite):
 
 
     def draw(self, display, offset=(0,0)):
-        #pygame.draw.rect(display, self.green, self.boundingBox) #DISPLAYS HITBOX
+       # pygame.draw.rect(display, self.green, self.rect) #DISPLAYS HITBOX
         #pygame.display.set_colorkey(self.image, [255,0,255], pygame.RLEACCEL)
         display.blit(self.image, (self.rect.x-offset[0], self.rect.y-offset[1]))
         
@@ -69,6 +75,7 @@ class Player(pygame.sprite.Sprite):
         self.position.y += self.velocity.y * dt + (self.acceleration.y * .5) * (dt * dt)
         if self.position.y > 1080: 
             self.onGround = True
+            self.isAlive = False
             self.velocity.y = 0
             self.position.y = 1080 
         self.rect.bottom = self.position.y
@@ -85,6 +92,7 @@ class Player(pygame.sprite.Sprite):
             self.coyoteTime = 0
     
     def getHits(self, tiles):
+        '''Checks collison with tiles'''
         hits = []
         for tile in tiles:
             if self.boundingBox.colliderect(tile):
@@ -92,24 +100,26 @@ class Player(pygame.sprite.Sprite):
         return hits
 
     def spikeCollision(self, spikes):
+        '''Checks collision with spikes'''
         hits = []
         for spike in spikes:
             if self.boundingBox.colliderect(spike):
                 hits.append(spike)
                 print("hit spike")
-                self.isAlive =  False
+                self.sound.play_sound('hurt')
+                #self.get_damage()
+                self.reset = True
         return hits
+    
     def flagCollision(self, flags):
+        '''Checks collision with flags'''
         hits = []
         for flag in flags:
             if self.boundingBox.colliderect(flag):
                 hits.append(flag)
-                self.IsAlive = False
+                #self.IsAlive = False
         return hits
     
-    
-
-
 
     def checkCollisions_X(self, tiles, flags):
         collisions = self.getHits(tiles)
@@ -123,7 +133,10 @@ class Player(pygame.sprite.Sprite):
                 self.position.x = tile.rect.right
                 self.rect.x = self.position.x
         for flag in flagCollision:
-            self.isAlive = False
+            #self.isAlive = False
+            self.sound.play_sound('complete')
+            self.is_flag_touched = True
+            print(self.is_flag_touched, "X-axis")
       
             
 
@@ -147,7 +160,16 @@ class Player(pygame.sprite.Sprite):
                 self.rect.bottom = self.position.y
         
         for flag in flagCollision:
-            self.isAlive = False
+            self.is_flag_touched = True
+            print(self.is_flag_touched, "Y - axis")
+
+        
+
+    def get_damage(self):
+            self.Lives -= 1
+            print(self.Lives)
+
+        
             
                 
 
