@@ -3,7 +3,7 @@ from game import Game
 
 
 def main():
-  
+ #game 
     game = Game()
     game.run()
 
